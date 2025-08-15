@@ -1,0 +1,41 @@
+---
+title: "runoff_volumes"
+output: html_document
+date: "2025-08-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task 1
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+source(here::here("src", "storm_runoff.R"))
+```
+
+```{r}
+# generate seq of impervious fractions
+impervious_frac = seq(0.6, 0.8, 0.01)
+
+# use the sourced function to get the volume in feet cubed
+volume_vec <- predict_runoff(impervious_frac, 182)
+
+# make these values into a data frame
+runoff_df = data.frame(impervious_fraction = impervious_frac, runoff_volume = volume_vec)
+
+# plot the values in this data frame
+runoff_plot <- ggplot(runoff_df, aes(impervious_frac, runoff_volume)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Impervious Fraction", y = "Runoff Volume  (ft^3)")
+
+# save this plot
+ggsave(here::here("figs", "runoff_plot.png"))
+```
+

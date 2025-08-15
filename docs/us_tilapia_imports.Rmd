@@ -1,0 +1,38 @@
+---
+title: "runoff_volumes"
+output: html_document
+date: "2025-08-14"
+---
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+```
+
+```{r}
+us_tilapia_imports <- read_csv(here::here("data", "us_tilapia_imports.csv"))
+
+us_tilapia_imports
+
+summary(us_tilapia_imports)
+names(us_tilapia_imports)
+dim(us_tilapia_imports)
+skimr::skim(us_tilapia_imports)
+
+us_tilapia_imports_pivot <- pivot_longer(us_tilapia_imports, 
+                                         col = -country,
+                                         names_to = "year",
+                                         #names_prefix = "X",
+                                         values_to = "imports"
+                                         )
+class(us_tilapia_imports_pivot$year)
+
+us_tilapia_imports_pivot <- us_tilapia_imports_pivot %>% mutate(year = as.numeric(year))
+
+class(us_tilapia_imports_pivot$year)
+
+yearly_tilapia_tot <- us_tilapia_imports %>% dplyr::group_by(year)
+
+```
+
+
