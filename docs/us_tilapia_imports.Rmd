@@ -10,29 +10,68 @@ library(janitor)
 ```
 
 ```{r}
+# Read data
 us_tilapia_imports <- read_csv(here::here("data", "us_tilapia_imports.csv"))
-
+# Return it
 us_tilapia_imports
-
+# Summarize
 summary(us_tilapia_imports)
 names(us_tilapia_imports)
 dim(us_tilapia_imports)
 skimr::skim(us_tilapia_imports)
 
+# Pivot
 us_tilapia_imports_pivot <- pivot_longer(us_tilapia_imports, 
-                                         col = -country,
-                                         names_to = "year",
-                                         #names_prefix = "X",
-                                         values_to = "imports"
+                                         col = -country, # pivot all columns except country
+                                         names_to = "year", # Name the new column "year"
+                                         values_to = "imports" # Call the values column "imports"
                                          )
+# Check class of each column's values 
+class(us_tilapia_imports_pivot$year)
+class(us_tilapia_imports_pivot$imports)
+
+# Make the year values numeric
+us_tilapia_imports_pivot <- us_tilapia_imports_pivot %>% mutate(year = as.numeric(year)) %>% mutate(imports = as.numeric(imports), na.rm = TRUE)
+
+# Check that the mutation worked
 class(us_tilapia_imports_pivot$year)
 
-us_tilapia_imports_pivot <- us_tilapia_imports_pivot %>% mutate(year = as.numeric(year))
+# Sum import values by year (group then sum imports)
+yearly_tilapia_tot <- us_tilapia_imports_pivot %>% dplyr::group_by(year) %>% summarize(total_imports = sum(imports, na.rm = TRUE))
 
-class(us_tilapia_imports_pivot$year)
+# Plot year vs imports
+yearly_tilapia_tot_plot <- ggplot(yearly_tilapia_tot, aes(year, total_imports)) +
+  geom_line() +
+  labs(x = "Year", y = "Total Imports (1000lb)")
+# save plot
+ggsave(here::here("figs", "yearly_tilapia_tot.png"), height = 5, width = 7)
 
-yearly_tilapia_tot <- us_tilapia_imports %>% dplyr::group_by(year)
 
+# Group original df by country and then filter to specified countries
+yearly_tilapia_subset <- us_tilapia_imports %>%
+  group_by(country) %>%
+  subset(country %in% c("Ecuador", "Honduras", "Costa Rica", "Mexico"))
+
+# Pivot like before for graphing
+yearly_tilapia_subset_pivot <- pivot_longer(yearly_tilapia_subset, 
+                                            col = -country, 
+                                            names_to = "year",
+                                            values_to = "imports"
+                                            )
+
+# Plot
+yearly_tilapia_subset_pivot_plot <- ggplot(yearly_tilapia_subset_pivot, aes(year, imports)) +
+  geom_smooth(aes(group = country), se = FALSE, color = "coral") +
+  geom_point(aes(color = imports)) + # color gradient by imports
+  facet_wrap(~country) + # per country
+  geom_line(aes(group = country), color = "red") + # line connecting points
+  labs(x = "Year", y = "Imports")
+  
+
+yearly_tilapia_subset_pivot_plot
+
+# Save plot
+ggsave(here::here("figs", "yearly_tilapia_subset_pivot_plot.jpg"), height = 5, width = 7)
 ```
 
 
